@@ -2,6 +2,8 @@ package com.kushyk.test.utils
 
 import java.util.*
 
+val suffixCaseInsensitiveComparator = SuffixCaseInsensitiveComparator()
+
 class SuffixCaseInsensitiveComparator : Comparator<String> {
     override fun compare(s1: String, s2: String): Int {
         val n1 = s1.length

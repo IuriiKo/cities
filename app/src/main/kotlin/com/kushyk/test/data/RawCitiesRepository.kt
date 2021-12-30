@@ -3,9 +3,9 @@ package com.kushyk.test.data
 import android.content.Context
 import androidx.annotation.RawRes
 import com.google.gson.Gson
-import com.kushyk.test.utils.SuffixCaseInsensitiveComparator
 import com.kushyk.test.utils.binarySearchAll
 import com.kushyk.test.utils.fromRawJson
+import com.kushyk.test.utils.suffixCaseInsensitiveComparator
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -22,7 +22,6 @@ class RawCitiesRepository @Inject constructor(
 ) : CitiesRepository {
     private lateinit var cities: List<CityDto>
     private val extractJob: Job
-    private val insensitiveComparator = SuffixCaseInsensitiveComparator()
 
     init {
         extractJob = coroutineScope.launch {
@@ -32,9 +31,8 @@ class RawCitiesRepository @Inject constructor(
 
     override fun cities(query: String): Flow<List<CityDto>> = flow {
         extractJob.join()
-        val foundedCities = cities.binarySearchAll(query, insensitiveComparator) {
-            it.name
-        }
+        val foundedCities =
+            cities.binarySearchAll(query, suffixCaseInsensitiveComparator, CityDto::name)
 
         emit(foundedCities)
     }

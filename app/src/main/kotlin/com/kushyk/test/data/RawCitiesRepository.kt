@@ -3,9 +3,9 @@ package com.kushyk.test.data
 import android.content.Context
 import androidx.annotation.RawRes
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.kushyk.test.utils.SuffixCaseInsensitiveComparator
 import com.kushyk.test.utils.binarySearchAll
+import com.kushyk.test.utils.fromRawJson
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -40,10 +40,8 @@ class RawCitiesRepository @Inject constructor(
     }
 
     private fun extractCities(): List<CityDto> {
-        val cities: List<CityDto> = context.resources.openRawResource(rawId).bufferedReader().use {
-            val type = object : TypeToken<ArrayList<CityDto>>() {}.type
-            gson.fromJson(it, type)
-        }
+        val cities = gson.fromRawJson(context, rawId, Array<CityDto>::class.java)
         return cities.sortedWith(compareBy(CityDto::name, CityDto::country))
     }
+
 }

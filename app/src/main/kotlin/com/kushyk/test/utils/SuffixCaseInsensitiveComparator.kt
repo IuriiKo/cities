@@ -7,9 +7,8 @@ class SuffixCaseInsensitiveComparator : Comparator<String> {
         val n1 = s1.length
         val n2 = s2.length
 
-        if (n1 < n2) return n1 - n2
-
         for (i in s2.indices) {
+            if (i >= n1) return n1 - n2
             var c1 = s1[i]
             var c2 = s2[i]
             if (c1 != c2) {

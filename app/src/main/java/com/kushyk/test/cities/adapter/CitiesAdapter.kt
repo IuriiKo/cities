@@ -1,19 +1,18 @@
 package com.kushyk.test.cities.adapter
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil.ItemCallback
-import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.kushyk.test.cities.viewmodel.CityModel
 import com.kushyk.test.databinding.CityItemBinding
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
-class CitiesAdapter : ListAdapter<CityModel, CityViewHolder>(
-    CityItemCallback()
-) {
-
-    private val _actionFlow = MutableSharedFlow<ViewHolderAction>()
+class CitiesAdapter : RecyclerView.Adapter<CityViewHolder>() {
+    private var items: List<CityModel> = emptyList()
+    private val _actionFlow = MutableSharedFlow<ViewHolderAction>(extraBufferCapacity = 1)
     val actionFlow = _actionFlow.asSharedFlow()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CityViewHolder =
@@ -23,14 +22,14 @@ class CitiesAdapter : ListAdapter<CityModel, CityViewHolder>(
         )
 
     override fun onBindViewHolder(holder: CityViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(items[position])
     }
-}
 
-private class CityItemCallback : ItemCallback<CityModel>() {
-    override fun areItemsTheSame(oldItem: CityModel, newItem: CityModel): Boolean =
-        oldItem == newItem
+    override fun getItemCount(): Int = items.size
 
-    override fun areContentsTheSame(oldItem: CityModel, newItem: CityModel): Boolean =
-        oldItem == newItem
+    @SuppressLint("NotifyDataSetChanged")
+    fun submitList(items: List<CityModel>) {
+        this.items = items
+        notifyDataSetChanged()
+    }
 }

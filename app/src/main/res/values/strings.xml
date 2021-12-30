@@ -2,4 +2,5 @@
     <string name="app_name">Cities</string>
     <string name="not_found_description">City not found</string>
     <string name="start_search_description">Start typing to find a city</string>
+    <string name="location_app_is_missing">You don\'t have an app that can show this location</string>
 </resources>

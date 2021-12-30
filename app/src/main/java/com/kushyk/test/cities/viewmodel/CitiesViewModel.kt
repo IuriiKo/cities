@@ -17,44 +17,42 @@ import kotlin.time.ExperimentalTime
 @HiltViewModel
 class CitiesViewModel @Inject constructor(
     private val citiesUseCase: FindCitiesUseCase
-): ViewModel() {
+) : ViewModel() {
     private val queryFlow = MutableSharedFlow<String?>()
     private val _viewState = MutableStateFlow<ViewState>(ViewState.StartSearch)
     val viewState = _viewState.asStateFlow()
-    private val _viewAction = MutableSharedFlow<ViewAction>()
+    private val _viewAction = MutableSharedFlow<ViewAction>(extraBufferCapacity = 1)
     val viewAction = _viewAction.asSharedFlow()
 
     init {
-        viewModelScope.launch {
-            queryFlow.debounce(400.milliseconds)
-                .flatMapConcat {
-                    if (it != null) citiesUseCase.find(it) else flow { emit(emptyList()) }
-                }
-                .map {it.map { city -> city.toModel()}}
-                .collect {
-                    _viewState.emit(ViewState.Data(it))
-                }
-        }
+        observeQuery()
     }
 
-    fun onClickItem(id: Int) {
-        when (val viewState = viewState.value) {
-            is ViewState.Data -> {
-                val index = viewState.cities.binarySearch { it.id.compareTo(id) }
-                if (index >= 0) {
-                    val item = viewState.cities[index]
-                    _viewAction.tryEmit(ViewAction.ShowLocation(item.longitude, item.latitude))
-                }
-            }
-            else -> {
-                // Invalid state
-            }
-        }
+    fun onClickItem(model: CityModel) {
+        _viewAction.tryEmit(ViewAction.ShowLocation(model.longitude, model.latitude))
     }
 
     fun onTextChange(query: String?) {
         viewModelScope.launch {
             queryFlow.emit(query)
+        }
+    }
+
+    private fun observeQuery() {
+        viewModelScope.launch {
+            queryFlow.debounce(400.milliseconds)
+                .flatMapConcat<String?, List<CityDto>?> {
+                    if (it.isNullOrEmpty()) flow { emit(null) } else citiesUseCase.find(it)
+                }
+                .map { it?.map { city -> city.toModel() } }
+                .map {
+                    when {
+                        it == null -> ViewState.StartSearch
+                        it.isEmpty() -> ViewState.NotFound
+                        else -> ViewState.Data(it)
+                    }
+                }
+                .collect(_viewState)
         }
     }
 

@@ -13,7 +13,7 @@ class CityViewHolder(
 
     init {
         binding.root.setOnClickListener {
-            actionFlow.tryEmit(ViewHolderAction.Click(model.id))
+            actionFlow.tryEmit(ViewHolderAction.Click(model))
         }
     }
 
